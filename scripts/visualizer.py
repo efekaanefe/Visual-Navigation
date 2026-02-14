@@ -79,3 +79,12 @@ class Visualizer:
         plt.tight_layout()
         plt.show()
 
+
+    def visualize_depth_map(self, depth_map):
+        plt.figure(figsize=(12, 5))
+        plt.imshow(depth_map, cmap='plasma')
+        plt.title("Depth Map")
+        plt.axis("off")
+        plt.colorbar()
+        plt.tight_layout()
+        plt.show()
