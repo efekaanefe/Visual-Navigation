@@ -6,12 +6,12 @@ from scripts.utils import calculate_trajectory_error
 
 
 if __name__ == "__main__":
-    vo = VisualOdometry(data_dir="data/KITTI/2", n_features=3000)
-
+    vo = VisualOdometry(data_dir="data/KITTI/2", is_left_camera = True, n_features=3000)
     visualizer = Visualizer()
 
     est_poses = vo.estimate_trajectory()
     visualizer.plot_trajectory_comparison(est_poses, vo.gt_poses)
 
     error = calculate_trajectory_error(est_poses, vo.gt_poses)
+    visualizer.plot_trajectory_error(error)
     print(f"Average Trajectory Error: {error.mean():.4f} meters")

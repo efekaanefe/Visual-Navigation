@@ -6,8 +6,9 @@ import os
 def calculate_trajectory_error(est_poses, gt_poses):
     error = est_poses - gt_poses
     error = np.linalg.norm(error, axis=1)
-    error = np.linalg.norm(error, axis=0)
+    error = np.linalg.norm(error, axis=1)
     return error
+
 
 # --- Transform Data ---
 def get_intrinsic(projection_matrix):
