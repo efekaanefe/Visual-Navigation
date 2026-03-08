@@ -58,8 +58,6 @@ class Visualizer:
         plt.tight_layout()
         plt.show()
 
-    
-
     def visualize_keypoints(self, image, keypoints):
         fig = plt.figure(figsize=(12, 6))
         ax = fig.add_subplot(111) #

@@ -20,43 +20,42 @@ def get_transformation_matrix(R, t):
     T[:3, 3] = t.flatten()
     return T
 
-
 #  --- Load Data ---
-def load_projection_matrices(file_path):
-    calib = {
-        "left": load_projection_matrix_for_camera(file_path, is_left_camera=True),
-        "right": load_projection_matrix_for_camera(file_path, is_left_camera=False)
-    }
-    return calib 
-
-def load_projection_matrix_for_camera(file_path, is_left_camera = True):
+def load_projection_matrix_for_camera(file_path):
     """Return the i-th calibration matrix (3x4)"""
-    index = 0 if is_left_camera else 1
+    index = 0 
     with open(file_path, 'r') as f:
         lines = f.readlines()
     line = lines[index].strip()
     values = np.array(line.split(), dtype=np.float32)
-    P = values.reshape(3, 4)  # projection matrix
+    P = values.reshape(3, 3)  # projection matrix
     return P
 
-def load_gt_poses(file_path):
+def load_2d_array(file_path):
     """Load poses from file"""
     with open(file_path, 'r') as f:
         lines = f.readlines()
     
-    poses = []
+    arrays = []
     for line in lines:
-        pose = np.array(line.strip().split(), dtype=np.float32)
-        pose = pose.reshape(3, 4)
-        pose = np.vstack((pose, [0, 0, 0, 1]))
-        poses.append(pose)
-    
-    return np.array(poses)
+        array = np.array(line.strip().split(), dtype=np.float32)
+        arrays.append(array)
+    return np.array(arrays)
 
-def load_images(data_dir, is_left_camera=True):
+def load_image_timestamps(file_path):
+    """Load image timestamps from file"""
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+    
+    timestamps = []
+    for line in lines:
+        timestamp = float(line.strip().split()[0])  
+        timestamps.append(timestamp)
+    return np.array(timestamps)[:, np.newaxis].astype(np.float32)  
+
+def load_images(data_dir):
     """Load images from file"""
-    appendix = "l" if is_left_camera else "r"
-    image_dir = os.path.join(data_dir, f"image_{appendix}")
+    image_dir = os.path.join(data_dir, f"images")
     image_files = sorted([f for f in os.listdir(image_dir) if f.endswith(".png")])
     image_paths = [os.path.join(image_dir, f) for f in image_files]
     images = []
@@ -64,14 +63,51 @@ def load_images(data_dir, is_left_camera=True):
         image = cv2.imread(image_path) # BGR
         images.append(image)
 
+    images = np.array(images)
     return images
 
+def load_data(data_dir):
+    calib_file = os.path.join(data_dir, "calib.txt")
+    gt_poses_file = os.path.join(data_dir, "groundtruth.txt")
+    imu_file = os.path.join(data_dir, "imu.txt")
+    events_file = os.path.join(data_dir, "events.txt")
+    image_timestamps_file = os.path.join(data_dir, "images.txt")
+
+    calib = load_projection_matrix_for_camera(calib_file)
+    gt_poses = load_2d_array(gt_poses_file)
+    imu_data = load_2d_array(imu_file)
+    events_data = load_2d_array(events_file)
+    images = load_images(data_dir)
+    image_timestamps = load_image_timestamps(image_timestamps_file)
+
+    return {
+        "calib": calib,
+        "events_data": events_data,
+        "gt_poses": gt_poses,
+        "images": images,
+        "image_timestamps": image_timestamps,
+        "imu_data": imu_data,
+    }
+
 if __name__ == "__main__":
-    projection_matrices = load_projection_matrices("data/KITTI/2/calib.txt")
-    poses = load_gt_poses("data/KITTI/2/poses.txt")
-    images = load_images("data/KITTI/2", is_left_camera=True)
-    print(projection_matrices["left"])
-    print(projection_matrices["right"])
-    print(poses[0])
-    print(type(images[0]))
-    print(images[0].shape)
+    data_name = "shapes_6dof"
+    dataset_path = f"data/{data_name}"
+    data = load_data(dataset_path)
+    print("Shapes 6DOF data loaded successfully!")
+    print("Calibration matrix shape:", data["calib"].shape)
+    print("Ground truth poses shape:", data["gt_poses"].shape)
+    print("IMU data shape:", data["imu_data"].shape)
+    print("Events data shape:", data["events_data"].shape)
+    print("Images shape:", data["images"].shape)
+    print("Image timestamps shape:", data["image_timestamps"].shape)
+
+    """
+    Shapes 6DOF data loaded successfully!
+    Calibration matrix shape: (3, 3)
+    Ground truth poses shape: (11862, 8)
+    IMU data shape: (59638, 7)
+    Events data shape: (17962477, 4)
+    Images shape: (1356, 180, 240, 3)
+    Image timestamps shape: (1356, 1)
+    """
+
