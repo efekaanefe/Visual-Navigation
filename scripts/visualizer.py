@@ -82,6 +82,15 @@ class Visualizer:
         plt.tight_layout()
         plt.show()
 
+    def visualize_image(self, img):
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        cv2.imshow("Sequence", img_bgr)
+
+        key = cv2.waitKey(0) & 0xFF
+        if key == 27 or key == ord('q'):
+            cv2.destroyAllWindows()
+            return
+
     def visualize_images_stream(self, images, delay=30):
         while True:  
             for img in images:
