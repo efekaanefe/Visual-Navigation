@@ -1,7 +1,23 @@
+import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import numpy as np
+from scipy.spatial.transform import Rotation as R
 
+
+def poses_to_SE3(gt_poses):
+    """
+    Convert poses in shape (N, 8) [t, tx, ty, tz, qx, qy, qz, qw] 
+    to SE(3) matrices of shape (N, 4, 4)
+    """
+    T = np.zeros((gt_poses.shape[0], 4, 4))
+    for i, p in enumerate(gt_poses):
+        t = p[1:4]
+        q = p[4:8]  # qx, qy, qz, qw
+        rot = R.from_quat(q).as_matrix()
+        T[i, :3, :3] = rot
+        T[i, :3, 3] = t
+        T[i, 3, 3] = 1.0
+    return T
 
 
 class Visualizer:
@@ -9,80 +25,105 @@ class Visualizer:
         pass
 
     def plot_trajectory(self, poses):
-        fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(111) #
-        
-        # X-Z Plane (Top View for KITTI: X=right, Z=forward)
-        ax.plot(poses[:, 0, 3], poses[:, 2, 3])
-        ax.set_title("Top View")
+        x = poses[:, 0, 3]
+        y = poses[:, 1, 3]
+        z = poses[:, 2, 3]
+
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.plot(x, y, z)
+
+        ax.set_title("3D Trajectory")
         ax.set_xlabel("X")
-        ax.set_ylabel("Z")
-        ax.grid(True)
-        ax.axis('equal')
-        
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+
+        # Equal scaling (important, otherwise trajectory looks distorted)
+        max_range = max(
+            x.max() - x.min(),
+            y.max() - y.min(),
+            z.max() - z.min()
+        ) / 2.0
+
+        mid_x = (x.max() + x.min()) * 0.5
+        mid_y = (y.max() + y.min()) * 0.5
+        mid_z = (z.max() + z.min()) * 0.5
+
+        ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        ax.set_ylim(mid_y - max_range, mid_y + max_range)
+        ax.set_zlim(mid_z - max_range, mid_z + max_range)
+
         plt.tight_layout()
         plt.show()
 
-    def plot_trajectory_comparison(self, est_poses, gt_poses):
+    def plot_imu(self, imu_data):
+        acc = imu_data[:, 1:4]
+        gyro = imu_data[:, 4:7]
+
         fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(111)
-        
-        # Plot trajectories with markers
-        ax.plot(est_poses[:, 0, 3], est_poses[:, 2, 3], label="Estimated", marker='.', markersize=2)
-        ax.plot(gt_poses[:, 0, 3], gt_poses[:, 2, 3], label="Ground Truth", marker='.', markersize=2)
 
-        # Draw dashed lines connecting corresponding poses
-        for i in range(len(est_poses)):
-            ax.plot([est_poses[i, 0, 3], gt_poses[i, 0, 3]], 
-                    [est_poses[i, 2, 3], gt_poses[i, 2, 3]], 
-                    'k--', linewidth=0.5, alpha=0.5)
+        # ---- Accelerometer 3D plot
+        ax1 = fig.add_subplot(121, projection='3d')
+        ax1.plot(acc[:, 0], acc[:, 1], acc[:, 2])
+        ax1.set_title("Accelerometer (3D)")
+        ax1.set_xlabel("ax")
+        ax1.set_ylabel("ay")
+        ax1.set_zlabel("az")
 
-        ax.set_title("Top View")
-        ax.set_xlabel("X")
-        ax.set_ylabel("Z")
-        ax.grid(True)
-        ax.legend()
-        ax.axis('equal')
-        
+        # ---- Gyroscope 3D plot
+        ax2 = fig.add_subplot(122, projection='3d')
+        ax2.plot(gyro[:, 0], gyro[:, 1], gyro[:, 2])
+        ax2.set_title("Gyroscope (3D)")
+        ax2.set_xlabel("gx")
+        ax2.set_ylabel("gy")
+        ax2.set_zlabel("gz")
+
         plt.tight_layout()
         plt.show()
 
-    def plot_trajectory_error(self, error):
-        fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(111)
-        ax.plot(error)
-        ax.set_title("Trajectory Error")
-        ax.set_xlabel("Frame")
-        ax.set_ylabel("Error")
-        ax.legend()
-        plt.tight_layout()
-        plt.show()
+    def visualize_images_stream(self, images, delay=30):
+        while True:  
+            for img in images:
+                img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                cv2.imshow("Sequence", img_bgr)
 
-    def visualize_keypoints(self, image, keypoints):
-        fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(111) #
-        ax.imshow(image)
-        ax.scatter([kp.pt[0] for kp in keypoints], [kp.pt[1] for kp in keypoints], c='r', s=10)
-        plt.tight_layout()
-        plt.show()
-
-    def visualize_matches(self, image1, image2, keypoints1, keypoints2, matches):
-        img_matches = cv2.drawMatches(image1, keypoints1, image2, keypoints2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        img_matches = cv2.cvtColor(img_matches, cv2.COLOR_BGR2RGB) 
-        
-        plt.figure(figsize=(12, 6))
-        plt.imshow(img_matches)
-        plt.title(f"Matches: {len(matches)}")
-        plt.axis('off')
-        plt.tight_layout()
-        plt.show()
+                key = cv2.waitKey(max(1, delay)) & 0xFF
+                if key == 27 or key == ord('q'):
+                    cv2.destroyAllWindows()
+                    return
 
 
-    def visualize_depth_map(self, depth_map):
-        plt.figure(figsize=(12, 5))
-        plt.imshow(depth_map, cmap='plasma')
-        plt.title("Depth Map")
-        plt.axis("off")
-        plt.colorbar()
-        plt.tight_layout()
-        plt.show()
+    def visualize_events_stream(self, events, H=180, W=240, dt=0.01, speed=1.0):
+        t0 = events[0, 0]
+        t_end = events[-1, 0]
+
+        while True:  
+            current_t = t0  
+
+            while current_t < t_end:
+                mask = (events[:, 0] >= current_t) & (events[:, 0] < current_t + dt)
+                batch = events[mask]
+
+                canvas = np.zeros((H, W, 3), dtype=np.uint8)
+
+                for e in batch:
+                    _, x, y, p = e
+                    x, y = int(x), int(y)
+
+                    if 0 <= x < W and 0 <= y < H:
+                        if p > 0:
+                            canvas[y, x] = [255, 0, 0]
+                        else:
+                            canvas[y, x] = [0, 0, 255]
+
+                cv2.imshow("Event Stream", canvas)
+
+                delay = int(dt * 1000 / speed)
+                key = cv2.waitKey(max(1, delay)) & 0xFF
+                if key == 27 or key == ord('q'):
+                    cv2.destroyAllWindows()
+                    return
+
+                current_t += dt
+
