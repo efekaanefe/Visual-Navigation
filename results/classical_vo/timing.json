@@ -1,0 +1,110 @@
+{
+  "10": {
+    "elapsed_s": 243.121,
+    "frames": 1201,
+    "registered_views": 1201,
+    "landmarks": 122034,
+    "ms_per_frame": 202.432,
+    "scale_to_gt": 0.296763,
+    "ate_m": 25.1904
+  },
+  "08": {
+    "elapsed_s": 809.319,
+    "frames": 4071,
+    "registered_views": 4071,
+    "landmarks": 459027,
+    "ms_per_frame": 198.801,
+    "scale_to_gt": 4.945473,
+    "ate_m": 113.5805
+  },
+  "09": {
+    "elapsed_s": 287.977,
+    "frames": 1591,
+    "registered_views": 1591,
+    "landmarks": 154273,
+    "ms_per_frame": 181.004,
+    "scale_to_gt": 1.931253,
+    "ate_m": 38.0719
+  },
+  "00": {
+    "elapsed_s": 881.268,
+    "frames": 4541,
+    "registered_views": 4541,
+    "landmarks": 494002,
+    "ms_per_frame": 194.069,
+    "scale_to_gt": 0.135691,
+    "ate_m": 158.4763
+  },
+  "01": {
+    "elapsed_s": 160.38,
+    "frames": 1101,
+    "registered_views": 1101,
+    "landmarks": 57897,
+    "ms_per_frame": 145.668,
+    "scale_to_gt": 3.685555,
+    "ate_m": 476.7136
+  },
+  "02": {
+    "elapsed_s": 949.478,
+    "frames": 4661,
+    "registered_views": 4661,
+    "landmarks": 542118,
+    "ms_per_frame": 203.707,
+    "scale_to_gt": 1.323715,
+    "ate_m": 247.2847
+  },
+  "03": {
+    "elapsed_s": 202.712,
+    "frames": 801,
+    "registered_views": 801,
+    "landmarks": 115443,
+    "ms_per_frame": 253.074,
+    "scale_to_gt": 12.29283,
+    "ate_m": 109.3388
+  },
+  "04": {
+    "elapsed_s": 62.7,
+    "frames": 271,
+    "registered_views": 271,
+    "landmarks": 34905,
+    "ms_per_frame": 231.367,
+    "scale_to_gt": 3.06266,
+    "ate_m": 46.6363
+  },
+  "05": {
+    "elapsed_s": 575.238,
+    "frames": 2761,
+    "registered_views": 2761,
+    "landmarks": 328550,
+    "ms_per_frame": 208.344,
+    "scale_to_gt": 0.379119,
+    "ate_m": 132.4914
+  },
+  "06": {
+    "elapsed_s": 218.026,
+    "frames": 1101,
+    "registered_views": 1101,
+    "landmarks": 113532,
+    "ms_per_frame": 198.025,
+    "scale_to_gt": 0.811419,
+    "ate_m": 68.642
+  },
+  "07": {
+    "elapsed_s": 238.168,
+    "frames": 1101,
+    "registered_views": 1100,
+    "landmarks": 127507,
+    "ms_per_frame": 216.32,
+    "scale_to_gt": 0.181254,
+    "ate_m": 44.7148
+  },
+  "22": {
+    "elapsed_s": 123.855,
+    "frames": 507,
+    "registered_views": 506,
+    "landmarks": 55681,
+    "ms_per_frame": 244.29,
+    "scale_to_gt": 0.037563,
+    "ate_m": 1.1161
+  }
+}
