@@ -204,24 +204,3 @@ This writes `trajectory_<seq>_<mode>.png` into a `views/` subfolder of the resul
 
 ---
 
-## 10. Troubleshooting
-
-- **`[skip] no frames found`** — the `<seq>/image_<camera_id>/` folder is empty for that
-  `--camera_id`. Sequence 22's frames live in `image_2`; run it with `--camera_id 2`.
-- **`[skip] initialization failed`** — fewer than two views registered (too few matches or
-  parallax in the opening frames). Try a different start, a smaller `--stride`, or check the
-  images are in order.
-- **`ATE=n/a`** — no ground-truth `<seq>.txt` found under `--poses_dir`; the trajectory is
-  still produced, just not scored.
-- **Large ATE / scale drift on long urban sequences** — expected for pure monocular VO
-  without loop closure or global BA: the single initialisation scale slowly diverges across
-  turns. Results are good on short/smooth sequences (e.g. 04, 07, 09, 10) and weaker on long
-  loop-rich ones (00, 02, 05, 08).
-- **Slow runs** — long sequences (e.g. 00, 02, 08) take many minutes on CPU. Use
-  `--stride 2` and/or `--max_frames` to shorten a test pass.
-
----
-
-### Sample tracking result
-
-![KITTI Dataset](results/results_2.png)
