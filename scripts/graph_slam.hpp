@@ -111,6 +111,7 @@ std::vector<Vertex_SE2> solve_slam( Data *data, bool use_incremental = false ) {
             for ( int j = 0; j < data->edges.size(); j++ ) {
                 Edge_SE2 curr_edge = data->edges[j];
 
+                // This prevents double-adding factors and prevents referencing vertices that have not been added yet
                 if ( curr_edge.indeces[1] == vertex_key ) {
                     propogate_graph_onestep( &new_graph, data, j );
                 }
