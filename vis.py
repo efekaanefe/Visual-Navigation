@@ -47,3 +47,4 @@ def visualize_trajectory(csv_file="trajectory.csv", save_path="trajectory_plot.p
 if __name__ == "__main__":
     visualize_trajectory("results/initial_traj.csv", "results/initial_traj.png")
     visualize_trajectory("results/optimized_traj.csv", "results/optimized_traj.png")
+    visualize_trajectory("results/optimized_traj_inc.csv", "results/optimized_traj_inc.png")

@@ -6,8 +6,6 @@
 #include <vector>
 
 int main() {
-    std::cout << "Hello, GTSAM\n" << std::endl;
-
     // Read data file
     std::string filepath = "../data/input_INTEL_g2o.g2o";
     Data data;
@@ -18,10 +16,12 @@ int main() {
 
     // Slam algorithm
     std::vector<Vertex_SE2> optimized_traj = solve_slam(&data);
+    std::vector<Vertex_SE2> optimized_traj_inc = solve_slam(&data, true);
 
     // Save GT and predicted trajectories as csv
-    save_trajectory(data.vertices, "../results/initial_traj.csv");
-    save_trajectory(optimized_traj, "../results/optimized_traj.csv");
+    // save_trajectory(data.vertices, "../results/initial_traj.csv");
+    // save_trajectory(optimized_traj, "../results/optimized_traj.csv");
+    save_trajectory(optimized_traj_inc, "../results/optimized_traj_inc.csv");
 
     return 0;
 }

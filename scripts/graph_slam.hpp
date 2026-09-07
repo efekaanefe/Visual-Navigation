@@ -5,6 +5,7 @@
 #include "gtsam/slam/BetweenFactor.h"
 #include "gtsam/slam/PriorFactor.h"
 
+#include "gtsam/nonlinear/ISAM2.h"
 #include "gtsam/nonlinear/LevenbergMarquardtOptimizer.h"
 #include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "gtsam/nonlinear/Values.h"
@@ -28,14 +29,17 @@ void propogate_graph_onestep( NonlinearFactorGraph *graph, Data *data, int curr_
     graph->add( BetweenFactor<Pose2>( curr_edge.indeces[0], curr_edge.indeces[1], odometry_mean, odometry_noise ) );
 };
 
+void add_prior_factor( NonlinearFactorGraph *graph ) {
+    Pose2 priorMean( 0, 0, 0 );
+    noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas( Vector3( 0.3, 0.3, 0.1 ) );
+    graph->add( PriorFactor<Pose2>( 0, priorMean, priorNoise ) );
+};
+
 NonlinearFactorGraph construct_graph( Data *data ) {
-    int curr_index = 0;
     NonlinearFactorGraph graph;
 
     // prior
-    Pose2 priorMean( 0, 0, 0 );
-    noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas( Vector3( 0.3, 0.3, 0.1 ) );
-    graph.add( PriorFactor<Pose2>( 0, priorMean, priorNoise ) );
+    add_prior_factor( &graph );
 
     // adding one step for each measurements/edges
     for ( int curr_index = 0; curr_index < data->edges.size(); curr_index++ ) {
@@ -47,12 +51,12 @@ NonlinearFactorGraph construct_graph( Data *data ) {
     return graph;
 };
 
-Values get_initial_guess(const Data *data) {
+Values get_initial_guess( const Data *data ) {
     Values initial;
-    for (const auto& vertex : data->vertices) {
-        initial.insert(vertex.index, gtsam::Pose2(vertex.x, vertex.y, vertex.theta));
+    for ( const auto &vertex : data->vertices ) {
+        initial.insert( vertex.index, gtsam::Pose2( vertex.x, vertex.y, vertex.theta ) );
     }
-    
+
     return initial;
 };
 
@@ -65,10 +69,10 @@ std::vector<Vertex_SE2> construct_optimized_traj( Values *result ) {
         Pose2 pose = key_value.value.cast<Pose2>();
 
         Vertex_SE2 vertex;
-        vertex.index = key;          
-        vertex.x = pose.x();         
-        vertex.y = pose.y();         
-        vertex.theta = pose.theta(); 
+        vertex.index = key;
+        vertex.x = pose.x();
+        vertex.y = pose.y();
+        vertex.theta = pose.theta();
 
         trajectory.push_back( vertex );
     }
@@ -76,12 +80,46 @@ std::vector<Vertex_SE2> construct_optimized_traj( Values *result ) {
     return trajectory;
 }
 
-std::vector<Vertex_SE2> solve_slam( Data *data ) {
+std::vector<Vertex_SE2> solve_slam( Data *data, bool use_incremental = false ) {
 
-    NonlinearFactorGraph graph = construct_graph( data );
-    Values initial = get_initial_guess( data );
+    if ( !use_incremental ) {
 
-    Values result = LevenbergMarquardtOptimizer( graph, initial ).optimize();
+        NonlinearFactorGraph graph = construct_graph( data );
+        Values initial = get_initial_guess( data );
 
-    return construct_optimized_traj( &result );
+        Values result = LevenbergMarquardtOptimizer( graph, initial ).optimize();
+        return construct_optimized_traj( &result );
+
+    } else {
+
+        ISAM2 isam;
+        Values initial;
+
+        for ( int i = 0; i < data->vertices.size(); i++ ) {
+            NonlinearFactorGraph new_graph;
+            Values new_initial;
+
+            Vertex_SE2 curr_vertex = data->vertices[i];
+            Key vertex_key = curr_vertex.index;
+
+            if ( i == 0 ) {
+                add_prior_factor( &new_graph );
+            }
+
+            new_initial.insert( vertex_key, Pose2( curr_vertex.x, curr_vertex.y, curr_vertex.theta ) );
+
+            for ( int j = 0; j < data->edges.size(); j++ ) {
+                Edge_SE2 curr_edge = data->edges[j];
+
+                if ( curr_edge.indeces[1] == vertex_key ) {
+                    propogate_graph_onestep( &new_graph, data, j );
+                }
+            }
+
+            isam.update( new_graph, new_initial );
+            initial = isam.calculateEstimate();
+        }
+
+        return construct_optimized_traj( &initial );
+    }
 };
