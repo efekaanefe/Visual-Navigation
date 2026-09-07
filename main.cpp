@@ -20,8 +20,8 @@ int main() {
     std::vector<Vertex_SE2> optimized_traj = solve_slam(&data);
 
     // Save GT and predicted trajectories as csv
-    save_trajectory(data.vertices, "../gt_traj.csv");
-    save_trajectory(optimized_traj, "../pred_traj.csv");
+    save_trajectory(data.vertices, "../results/initial_traj.csv");
+    save_trajectory(optimized_traj, "../results/optimized_traj.csv");
 
     return 0;
 }
