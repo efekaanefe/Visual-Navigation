@@ -6,4 +6,5 @@ cd build
 cmake ..
 make
 ./main
-
+cd ..
+python3 vis.py
