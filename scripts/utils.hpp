@@ -1,4 +1,7 @@
+#pragma once
+
 #include <boost/exception/exception.hpp>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -26,6 +29,7 @@ struct Data {
     std::vector<Edge_SE2> edges;
 };
 
+// Load
 Data read_data( std::string filepath ) {
     Data data;
     std::ifstream file( filepath );
@@ -51,6 +55,7 @@ Data read_data( std::string filepath ) {
             data.vertices.push_back( vertex );
         }
 
+        // TODO: check if indeces are sequential to flag loop closures
         else if ( type == "EDGE_SE2" ) {
             int indeces[2];
             float x, y, theta;
@@ -74,6 +79,7 @@ Data read_data( std::string filepath ) {
     return data;
 };
 
+// Print
 void print_vertex( const Vertex_SE2 &v ) {
     printf( "Vertex_SE2:\n  index=%d, x=%.3f, y=%.3f, theta=%.3f\n", v.index, v.x, v.y, v.theta );
 }
@@ -102,6 +108,17 @@ void print_data( Data data, int max_index ) {
     }
 };
 
+// Check something
+bool is_edge_loop_closure( int indeces[2] ) {
+    int delta = std::abs( indeces[0] - indeces[1] );
+
+    if ( delta >= 1 )
+        return true;
+
+    return false;
+}
+
+// Math
 Eigen::Matrix3f get_information_matrix( const float info[6] ) {
     Eigen::Matrix3f information_matrix;
     information_matrix << info[0], info[1], info[2], info[1], info[3], info[4], info[2], info[4], info[5];
@@ -109,8 +126,25 @@ Eigen::Matrix3f get_information_matrix( const float info[6] ) {
 }
 
 Eigen::Matrix3f get_covariance_matrix( const float info[6] ) {
-    Eigen::Matrix3f covariance = get_information_matrix(info);
+    Eigen::Matrix3f covariance = get_information_matrix( info );
     return covariance.inverse();
 }
 
-// void save_trajectory_as_csv(std::vector<data_point> trajectory);
+// Export
+void save_trajectory( const std::vector<Vertex_SE2> &vertices, const std::string &filename = "trajectory.csv" ) {
+    std::ofstream file( filename );
+
+    if ( !file.is_open() ) {
+        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+        return;
+    }
+
+    file << "id,x,y,theta\n";
+
+    for ( const auto &v : vertices ) {
+        file << v.index << "," << v.x << "," << v.y << "," << v.theta << "\n";
+    }
+
+    file.close();
+    std::cout << "Trajectory successfully saved to: " << filename << std::endl;
+}
