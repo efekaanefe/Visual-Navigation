@@ -29,16 +29,16 @@ void propogate_graph_onestep( NonlinearFactorGraph *graph, Data *data, int curr_
 };
 
 NonlinearFactorGraph construct_graph( Data *data ) {
-    int curr_index = 1;
+    int curr_index = 0;
     NonlinearFactorGraph graph;
 
     // prior
     Pose2 priorMean( 0, 0, 0 );
     noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas( Vector3( 0.3, 0.3, 0.1 ) );
-    graph.add( PriorFactor<Pose2>( 1, priorMean, priorNoise ) );
+    graph.add( PriorFactor<Pose2>( 0, priorMean, priorNoise ) );
 
     // adding one step for each measurements/edges
-    for ( int curr_index = 1; curr_index < data->edges.size(); curr_index++ ) {
+    for ( int curr_index = 0; curr_index < data->edges.size(); curr_index++ ) {
         propogate_graph_onestep( &graph, data, curr_index );
     }
 
