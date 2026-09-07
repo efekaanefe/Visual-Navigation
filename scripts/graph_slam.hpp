@@ -22,8 +22,8 @@ void propogate_graph_onestep( NonlinearFactorGraph *graph, Data *data, int curr_
     Edge_SE2 curr_edge = data->edges[curr_index]; // these are odometries and loopclosures
 
     Pose2 odometry_mean( curr_edge.x, curr_edge.y, curr_edge.theta );
-    Eigen::Matrix3f cov_matrix = get_covariance_matrix( curr_edge.info );
-    noiseModel::Gaussian::shared_ptr odometry_noise = noiseModel::Gaussian::Covariance( cov_matrix.cast<double>() );
+    Eigen::Matrix3d cov_matrix = get_covariance_matrix( curr_edge.info );
+    noiseModel::Diagonal::shared_ptr odometry_noise = noiseModel::Diagonal::Sigmas( cov_matrix.diagonal().cwiseSqrt() );
 
     graph->add( BetweenFactor<Pose2>( curr_edge.indeces[0], curr_edge.indeces[1], odometry_mean, odometry_noise ) );
 };

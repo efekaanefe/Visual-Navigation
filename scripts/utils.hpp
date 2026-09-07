@@ -14,14 +14,14 @@
 
 struct Vertex_SE2 {
     int index;
-    float x, y, theta;
+    double x, y, theta;
 };
 struct Vertex_XY;
 
 struct Edge_SE2 {
     int indeces[2];
-    float x, y, theta;
-    float info[6];
+    double x, y, theta;
+    double info[6];
 };
 
 struct Data {
@@ -48,7 +48,7 @@ Data read_data( std::string filepath ) {
 
         if ( type == "VERTEX_SE2" ) {
             int index;
-            float x, y, theta;
+            double x, y, theta;
             iss >> index >> x >> y >> theta;
 
             Vertex_SE2 vertex{ .index = index, .x = x, .y = y, .theta = theta };
@@ -58,8 +58,8 @@ Data read_data( std::string filepath ) {
         // TODO: check if indeces are sequential to flag loop closures
         else if ( type == "EDGE_SE2" ) {
             int indeces[2];
-            float x, y, theta;
-            float info[6];
+            double x, y, theta;
+            double info[6];
 
             iss >> indeces[0] >> indeces[1] >> x >> y >> theta >> info[0] >> info[1] >> info[2] >> info[3] >> info[4] >>
                 info[5];
@@ -119,14 +119,14 @@ bool is_edge_loop_closure( int indeces[2] ) {
 }
 
 // Math
-Eigen::Matrix3f get_information_matrix( const float info[6] ) {
-    Eigen::Matrix3f information_matrix;
+Eigen::Matrix3d get_information_matrix( const double info[6] ) {
+    Eigen::Matrix3d information_matrix;
     information_matrix << info[0], info[1], info[2], info[1], info[3], info[4], info[2], info[4], info[5];
     return information_matrix;
 }
 
-Eigen::Matrix3f get_covariance_matrix( const float info[6] ) {
-    Eigen::Matrix3f covariance = get_information_matrix( info );
+Eigen::Matrix3d get_covariance_matrix( const double info[6] ) {
+    Eigen::Matrix3d covariance = get_information_matrix( info );
     return covariance.inverse();
 }
 
