@@ -59,21 +59,16 @@ Values get_initial_guess(const Data *data) {
 std::vector<Vertex_SE2> construct_optimized_traj( Values *result ) {
     std::vector<Vertex_SE2> trajectory;
 
-    // Iterate through all variables stored in the Values container
     for ( const auto &key_value : *result ) {
-        gtsam::Key key = key_value.key;
+        Key key = key_value.key;
 
-        // Cast the generic GTSAM Value object back into a Pose2
-        // Note: This assumes all values in 'result' are Pose2.
-        // If you have landmarks (Point2), you would need to check the type first.
-        gtsam::Pose2 pose = key_value.value.cast<gtsam::Pose2>();
+        Pose2 pose = key_value.value.cast<Pose2>();
 
-        // Map the GTSAM data to your custom Vertex_SE2 type
         Vertex_SE2 vertex;
-        vertex.index = key;             // 64-bit integer key used in GTSAM
-        vertex.x = pose.x();         // Translation X
-        vertex.y = pose.y();         // Translation Y
-        vertex.theta = pose.theta(); // Rotation in radians
+        vertex.index = key;          
+        vertex.x = pose.x();         
+        vertex.y = pose.y();         
+        vertex.theta = pose.theta(); 
 
         trajectory.push_back( vertex );
     }
